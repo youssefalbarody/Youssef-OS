@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="The foundational dashboard for Youssef OS."
+    />
+    <title>Youssef OS</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="dashboard" aria-labelledby="project-title">
+      <header class="dashboard__header">
+        <div>
+          <p class="eyebrow">Personal operating system</p>
+          <h1 id="project-title">Youssef OS</h1>
+        </div>
+
+        <dl class="release-details" aria-label="Release information">
+          <div>
+            <dt>Current version</dt>
+            <dd>0.2.3</dd>
+          </div>
+          <div>
+            <dt>Current release</dt>
+            <dd>Sprint 14</dd>
+          </div>
+        </dl>
+      </header>
+
+      <section class="connection-card" aria-labelledby="connection-title">
+        <span class="connection-card__indicator" aria-hidden="true"></span>
+        <div class="connection-card__details">
+          <h2 id="connection-title">Connection status</h2>
+          <p>Supabase connection is checked when the dashboard loads.</p>
+        </div>
+        <span class="status" id="connection-status" role="status" aria-live="polite">
+          Checking connection
+        </span>
+      </section>
+
+      <section class="content-area projects-section" aria-labelledby="projects-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Workspace</p>
+            <h2 id="projects-title">Projects</h2>
+          </div>
+          <button class="button button--primary" id="new-project-button" type="button">
+            New Project
+          </button>
+        </div>
+
+        <div class="projects-content" id="projects-content" aria-live="polite">
+          <div class="projects-state" data-state="loading">
+            <p>Loading projects...</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-area tasks-section" aria-labelledby="tasks-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Project workspace</p>
+            <h2 id="tasks-title">Tasks</h2>
+          </div>
+          <button class="button button--primary" id="new-task-button" type="button" hidden>
+            New Task
+          </button>
+        </div>
+
+        <div class="tasks-content" id="tasks-content" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <dialog class="project-dialog" id="project-dialog" aria-labelledby="project-dialog-title">
+      <form class="project-form" id="project-form" novalidate>
+        <div class="project-form__header">
+          <div>
+            <p class="eyebrow">Projects</p>
+            <h2 id="project-dialog-title">New Project</h2>
+          </div>
+          <button class="icon-button" id="close-project-dialog" type="button" aria-label="Close dialog">
+            ×
+          </button>
+        </div>
+
+        <label class="field" for="project-name">
+          <span>Name</span>
+          <input id="project-name" name="name" type="text" autocomplete="off" required />
+        </label>
+
+        <label class="field" for="project-description">
+          <span>Description <em>Optional</em></span>
+          <textarea id="project-description" name="description" rows="3"></textarea>
+        </label>
+
+        <div class="project-form__optional-fields">
+          <label class="field" for="project-color">
+            <span>Color <em>Optional</em></span>
+            <input id="project-color" name="color" type="text" autocomplete="off" placeholder="#38bdf8" />
+          </label>
+
+          <label class="field" for="project-icon">
+            <span>Icon <em>Optional</em></span>
+            <input id="project-icon" name="icon" type="text" autocomplete="off" />
+          </label>
+
+          <label class="field" for="project-status">
+            <span>Status <em>Optional</em></span>
+            <input id="project-status" name="status" type="text" autocomplete="off" />
+          </label>
+        </div>
+
+        <p class="form-feedback" id="project-form-feedback" role="status" aria-live="polite"></p>
+
+        <div class="project-form__actions">
+          <button class="button button--secondary" id="cancel-project-button" type="button">Cancel</button>
+          <button class="button button--primary" id="create-project-button" type="submit">Create Project</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="task-dialog" id="task-dialog" aria-labelledby="task-dialog-title">
+      <form class="task-form" id="task-form" novalidate>
+        <div class="task-form__header">
+          <div>
+            <p class="eyebrow">Tasks</p>
+            <h2 id="task-dialog-title">New Task</h2>
+          </div>
+          <button class="icon-button" id="close-task-dialog" type="button" aria-label="Close dialog">
+            ×
+          </button>
+        </div>
+
+        <label class="field" for="task-title">
+          <span>Title</span>
+          <input id="task-title" name="title" type="text" autocomplete="off" required />
+        </label>
+
+        <p class="form-feedback" id="task-form-feedback" role="status" aria-live="polite"></p>
+
+        <div class="task-form__actions">
+          <button class="button button--secondary" id="cancel-task-button" type="button">Cancel</button>
+          <button class="button button--primary" id="create-task-button" type="submit">Create Task</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
