@@ -1,7 +1,7 @@
 # PRODUCT VISION
 
-Version: 0.2.3
-Current release: Sprint 14
+Version: 0.2.6
+Current release: Sprint 17
 Status: Active
 Project: Youssef OS
 
@@ -25,4 +25,4 @@ A stable personal operating system used every day to manage life from one place.
 
 ---
 
-End of PRODUCT VISION v0.2.3
+End of PRODUCT VISION v0.2.6

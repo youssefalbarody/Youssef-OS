@@ -3,6 +3,7 @@ const tasksTitle = document.querySelector("#tasks-title");
 const newTaskButton = document.querySelector("#new-task-button");
 let onCreateTask = () => {};
 let onToggleTask = async () => {};
+let onEditTask = () => {};
 let selectedProject = null;
 let tasksById = new Map();
 
@@ -25,6 +26,7 @@ function createTaskItem(task) {
   const statusLabel = document.createElement("dt");
   const statusValue = document.createElement("dd");
   const actions = document.createElement("div");
+  const editButton = document.createElement("button");
   const toggleButton = document.createElement("button");
   const status = task.status || "todo";
 
@@ -36,6 +38,12 @@ function createTaskItem(task) {
   statusValue.textContent = status;
   details.append(statusLabel, statusValue);
   actions.className = "task-item__actions";
+  editButton.className = "button button--secondary";
+  editButton.type = "button";
+  editButton.dataset.taskId = task.id;
+  editButton.dataset.action = "edit";
+  editButton.textContent = "Edit";
+  editButton.setAttribute("aria-label", `Edit ${task.title}`);
   toggleButton.className = "button button--secondary";
   toggleButton.type = "button";
   toggleButton.dataset.taskId = task.id;
@@ -45,7 +53,7 @@ function createTaskItem(task) {
     "aria-label",
     status === "done" ? `Mark ${task.title} as todo` : `Mark ${task.title} as done`,
   );
-  actions.append(toggleButton);
+  actions.append(editButton, toggleButton);
   item.append(title, details, actions);
 
   return item;
@@ -104,9 +112,10 @@ export function renderTasksError(projectName) {
   );
 }
 
-export function initializeTasksView({ onCreate, onToggle }) {
+export function initializeTasksView({ onCreate, onToggle, onEdit }) {
   onCreateTask = onCreate;
   onToggleTask = onToggle;
+  onEditTask = onEdit;
 
   newTaskButton?.addEventListener("click", () => {
     if (selectedProject) {
@@ -115,35 +124,44 @@ export function initializeTasksView({ onCreate, onToggle }) {
   });
 
   tasksContent?.addEventListener("click", async (event) => {
-    const toggleButton = event.target.closest('[data-action="toggle-status"]');
+    const actionButton = event.target.closest("[data-task-id]");
 
-    if (!toggleButton) {
+    if (!actionButton) {
       return;
     }
 
-    const task = tasksById.get(toggleButton.dataset.taskId);
+    const task = tasksById.get(actionButton.dataset.taskId);
 
     if (!task) {
       return;
     }
 
-    const originalLabel = toggleButton.textContent;
-    toggleButton.disabled = true;
-    toggleButton.textContent = "Updating...";
+    if (actionButton.dataset.action === "edit") {
+      onEditTask(task);
+      return;
+    }
+
+    if (actionButton.dataset.action !== "toggle-status") {
+      return;
+    }
+
+    const originalLabel = actionButton.textContent;
+    actionButton.disabled = true;
+    actionButton.textContent = "Updating...";
 
     try {
       await onToggleTask(task);
     } catch (error) {
       console.error("Task status could not be updated.", error);
-      toggleButton.disabled = false;
-      toggleButton.textContent = originalLabel;
+      actionButton.disabled = false;
+      actionButton.textContent = originalLabel;
 
       const feedback = createState(
         "Task status could not be updated. Please try again.",
         "error",
       );
       feedback.classList.add("tasks-feedback");
-      toggleButton.closest(".task-item")?.append(feedback);
+      actionButton.closest(".task-item")?.append(feedback);
     }
   });
 }

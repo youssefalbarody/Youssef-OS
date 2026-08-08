@@ -1,4 +1,4 @@
-import { createTask } from "./tasks.service.js";
+import { createTask, updateTaskTitle } from "./tasks.service.js";
 
 const dialog = document.querySelector("#task-dialog");
 const form = document.querySelector("#task-form");
@@ -7,8 +7,10 @@ const cancelButton = document.querySelector("#cancel-task-button");
 const submitButton = document.querySelector("#create-task-button");
 const feedback = document.querySelector("#task-form-feedback");
 const titleInput = document.querySelector("#task-title");
+const dialogTitle = document.querySelector("#task-dialog-title");
 
 let selectedProject = null;
+let editingTask = null;
 
 function setFeedback(message, state = "") {
   if (feedback) {
@@ -17,10 +19,28 @@ function setFeedback(message, state = "") {
   }
 }
 
+function setFormMode(task = null) {
+  editingTask = task;
+
+  if (dialogTitle) {
+    dialogTitle.textContent = task ? "Edit Task" : "New Task";
+  }
+
+  if (submitButton) {
+    submitButton.textContent = task ? "Save Changes" : "Create Task";
+  }
+}
+
 function setSubmitting(isSubmitting) {
   if (submitButton) {
     submitButton.disabled = isSubmitting;
-    submitButton.textContent = isSubmitting ? "Creating..." : "Create Task";
+    submitButton.textContent = isSubmitting
+      ? editingTask
+        ? "Saving..."
+        : "Creating..."
+      : editingTask
+        ? "Save Changes"
+        : "Create Task";
   }
 }
 
@@ -34,7 +54,22 @@ export function initializeTaskForm(onSaved) {
   function openForCreate(project) {
     selectedProject = project;
     form?.reset();
+    setFormMode();
     setFeedback();
+    dialog?.showModal();
+    titleInput?.focus();
+  }
+
+  function openForEdit(task) {
+    selectedProject = null;
+    form?.reset();
+    setFormMode(task);
+    setFeedback();
+
+    if (titleInput) {
+      titleInput.value = task.title;
+    }
+
     dialog?.showModal();
     titleInput?.focus();
   }
@@ -53,25 +88,31 @@ export function initializeTaskForm(onSaved) {
       return;
     }
 
-    if (!selectedProject) {
+    if (!editingTask && !selectedProject) {
       setFeedback("Select a project before creating a task.", "error");
       return;
     }
 
     setSubmitting(true);
-    setFeedback("Creating task...", "loading");
+    setFeedback(editingTask ? "Saving task..." : "Creating task...", "loading");
 
     try {
-      await createTask(selectedProject.id, title);
-      await onSaved(selectedProject);
-      setFeedback("Task created successfully.", "success");
+      if (editingTask) {
+        await updateTaskTitle(editingTask.id, title);
+        await onSaved();
+        setFeedback("Task updated successfully.", "success");
+      } else {
+        await createTask(selectedProject.id, title);
+        await onSaved(selectedProject);
+        setFeedback("Task created successfully.", "success");
+      }
     } catch (error) {
-      console.error("Task could not be created.", error);
-      setFeedback("Task could not be created. Please try again.", "error");
+      console.error("Task could not be saved.", error);
+      setFeedback("Task could not be saved. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
   });
 
-  return { openForCreate };
+  return { openForCreate, openForEdit };
 }

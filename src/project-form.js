@@ -52,7 +52,7 @@ function setFormValues(project) {
   form.elements.description.value = project.description || "";
   form.elements.color.value = project.color || "";
   form.elements.icon.value = project.icon || "";
-  form.elements.status.value = project.status || "";
+  form.elements.namedItem("status").value = project.status || "Active";
 }
 
 function getProjectFromForm() {
@@ -104,6 +104,8 @@ export function initializeProjectForm(onSaved) {
     setFeedback(isEditing ? "Saving project..." : "Creating project...", "loading");
 
     try {
+      let createdProject = null;
+
       if (isEditing) {
         await updateProject(
           editingProject.id,
@@ -111,14 +113,19 @@ export function initializeProjectForm(onSaved) {
           project.name !== editingProject.name,
         );
       } else {
-        await createProject(project);
+        createdProject = await createProject(project);
       }
 
-      await onSaved();
+      await onSaved(createdProject);
       setFeedback(
         isEditing ? "Project updated successfully." : "Project created successfully.",
         "success",
       );
+
+      if (!isEditing) {
+        form.reset();
+        closeDialog();
+      }
     } catch (error) {
       console.error("Project could not be saved.", error);
       setFeedback("Project could not be saved. Please try again.", "error");

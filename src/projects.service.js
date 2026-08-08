@@ -21,18 +21,24 @@ export async function getProjects() {
  * Creates one project with the fields approved for the current sprint.
  */
 export async function createProject(project) {
-  const { error } = await supabase.from("projects").insert({
-    name: project.name,
-    slug: createProjectSlug(project.name),
-    description: project.description || null,
-    color: project.color || null,
-    icon: project.icon || null,
-    status: project.status || null,
-  });
+  const { data, error } = await supabase
+    .from("projects")
+    .insert({
+      name: project.name,
+      slug: createProjectSlug(project.name),
+      description: project.description || null,
+      color: project.color || null,
+      icon: project.icon || null,
+      status: project.status || null,
+    })
+    .select("id, name, description, color, icon, status")
+    .single();
 
   if (error) {
     throw error;
   }
+
+  return data;
 }
 
 /**

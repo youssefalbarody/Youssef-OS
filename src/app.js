@@ -8,7 +8,14 @@ import "./supabase.client.js";
 import { initializeProjectForm } from "./project-form.js";
 import { getProjects } from "./projects.service.js";
 import { initializeTaskForm } from "./task-form.js";
-import { getTasksByProjectId, updateTaskStatus } from "./tasks.service.js";
+import { getTaskSummary, getTasksByProjectId, updateTaskStatus } from "./tasks.service.js";
+import {
+  initializeOverview,
+  renderOverview,
+  renderOverviewError,
+  renderOverviewLoading,
+  setQuickTaskAvailable,
+} from "./overview.view.js";
 import {
   initializeTasksView,
   renderTasks,
@@ -29,6 +36,7 @@ const connection = {
   label: "Checking connection",
 };
 let selectedTasksProject = null;
+let availableProjects = [];
 
 function renderConnectionStatus() {
   const statusElement = document.querySelector("#connection-status");
@@ -70,11 +78,51 @@ async function loadProjects() {
 
   try {
     const projects = await getProjects();
+    availableProjects = projects;
+    setQuickTaskAvailable(projects.length > 0);
     renderProjects(projects);
   } catch (error) {
     console.error("Projects could not be loaded.", error);
     renderProjectsError();
   }
+}
+
+async function loadOverview() {
+  renderOverviewLoading();
+
+  try {
+    const [projects, tasks] = await Promise.all([getProjects(), getTaskSummary()]);
+    const summary = tasks.reduce(
+      (counts, task) => {
+        counts.totalTasks += 1;
+
+        if (task.status === "done") {
+          counts.completedTasks += 1;
+        } else {
+          counts.pendingTasks += 1;
+        }
+
+        return counts;
+      },
+      {
+        activeProjects: projects.filter(
+          (project) => project.status?.toLowerCase() === "active",
+        ).length,
+        pendingTasks: 0,
+        completedTasks: 0,
+        totalTasks: 0,
+      },
+    );
+
+    renderOverview(summary);
+  } catch (error) {
+    console.error("Dashboard overview could not be loaded.", error);
+    renderOverviewError();
+  }
+}
+
+async function refreshDashboard() {
+  await Promise.all([loadProjects(), loadOverview()]);
 }
 
 async function loadTasksForProject(project) {
@@ -95,12 +143,24 @@ async function toggleTaskStatus(task) {
   const nextStatus = task.status === "done" ? "todo" : "done";
 
   await updateTaskStatus(task.id, nextStatus);
-  await loadTasksForProject(selectedTasksProject);
+  await Promise.all([loadTasksForProject(selectedTasksProject), loadOverview()]);
 }
 
 renderConnectionStatus();
-const projectForm = initializeProjectForm(loadProjects);
-const taskForm = initializeTaskForm(loadTasksForProject);
+const projectForm = initializeProjectForm(async (createdProject) => {
+  await refreshDashboard();
+
+  if (createdProject) {
+    await loadTasksForProject(createdProject);
+  }
+});
+const taskForm = initializeTaskForm(async (project = selectedTasksProject) => {
+  if (!project) {
+    return;
+  }
+
+  await Promise.all([loadTasksForProject(project), loadOverview()]);
+});
 
 initializeProjectsView({
   onEdit: projectForm.openForEdit,
@@ -109,7 +169,18 @@ initializeProjectsView({
 initializeTasksView({
   onCreate: taskForm.openForCreate,
   onToggle: toggleTaskStatus,
+  onEdit: taskForm.openForEdit,
+});
+initializeOverview({
+  onNewProject: projectForm.openForCreate,
+  onNewTask: () => {
+    const project = selectedTasksProject || availableProjects[0];
+
+    if (project) {
+      taskForm.openForCreate(project);
+    }
+  },
 });
 renderTasksInitial();
 void checkSupabaseConnection();
-void loadProjects();
+void refreshDashboard();

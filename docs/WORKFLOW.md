@@ -1,7 +1,7 @@
 # WORKFLOW
 
-Version: 0.2.3
-Current release: Sprint 14
+Version: 0.2.6
+Current release: Sprint 17
 Status: Active
 Project: Youssef OS
 
@@ -52,4 +52,4 @@ Actionable information appears before explanation.
 
 ---
 
-End of WORKFLOW v0.2.3
+End of WORKFLOW v0.2.6

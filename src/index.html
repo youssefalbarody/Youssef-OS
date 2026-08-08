@@ -21,11 +21,11 @@
         <dl class="release-details" aria-label="Release information">
           <div>
             <dt>Current version</dt>
-            <dd>0.2.3</dd>
+            <dd>0.2.6</dd>
           </div>
           <div>
             <dt>Current release</dt>
-            <dd>Sprint 14</dd>
+            <dd>Sprint 17</dd>
           </div>
         </dl>
       </header>
@@ -39,6 +39,27 @@
         <span class="status" id="connection-status" role="status" aria-live="polite">
           Checking connection
         </span>
+      </section>
+
+      <section class="dashboard-overview" aria-labelledby="overview-title">
+        <div class="section-heading section-heading--overview">
+          <div>
+            <p class="eyebrow">Daily command center</p>
+            <h2 id="overview-title">Today at a glance</h2>
+          </div>
+          <div class="quick-actions" aria-label="Quick actions">
+            <button class="button button--secondary" id="quick-new-project-button" type="button">
+              New Project
+            </button>
+            <button class="button button--primary" id="quick-new-task-button" type="button">
+              New Task
+            </button>
+          </div>
+        </div>
+
+        <div class="overview-content" id="overview-content" aria-live="polite">
+          <p class="overview-state" data-state="loading">Loading your overview...</p>
+        </div>
       </section>
 
       <section class="content-area projects-section" aria-labelledby="projects-title">
@@ -108,8 +129,11 @@
           </label>
 
           <label class="field" for="project-status">
-            <span>Status <em>Optional</em></span>
-            <input id="project-status" name="status" type="text" autocomplete="off" />
+            <span>Status</span>
+            <select id="project-status" name="status">
+              <option value="Active" selected>Active</option>
+              <option value="Archived">Archived</option>
+            </select>
           </label>
         </div>
 
