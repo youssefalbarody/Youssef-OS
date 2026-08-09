@@ -8,29 +8,38 @@
       content="The foundational dashboard for Youssef OS."
     />
     <title>Youssef OS</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=0.4.0.2" />
   </head>
   <body>
-    <main class="dashboard" aria-labelledby="project-title">
+    <div class="app-shell">
+      <aside class="app-sidebar" aria-label="Primary navigation">
+        <div class="app-sidebar__brand">
+          <p class="eyebrow">Personal operating system</p>
+          <strong>YOUSSEF OS</strong>
+        </div>
+        <nav id="desktop-navigation" class="app-navigation" aria-label="Primary"></nav>
+      </aside>
+      <main class="dashboard" aria-labelledby="project-title">
       <header class="dashboard__header">
         <div>
           <p class="eyebrow">Personal operating system</p>
           <h1 id="project-title">Youssef OS</h1>
+          <p class="workspace-label" id="workspace-label">Dashboard</p>
         </div>
 
         <dl class="release-details" aria-label="Release information">
           <div>
             <dt>Current version</dt>
-            <dd>0.2.6</dd>
+            <dd>0.5.0</dd>
           </div>
           <div>
             <dt>Current release</dt>
-            <dd>Sprint 17</dd>
+            <dd>Sprint 22</dd>
           </div>
         </dl>
       </header>
 
-      <section class="connection-card" aria-labelledby="connection-title">
+      <section class="connection-card" data-workspace="dashboard" aria-labelledby="connection-title">
         <span class="connection-card__indicator" aria-hidden="true"></span>
         <div class="connection-card__details">
           <h2 id="connection-title">Connection status</h2>
@@ -41,7 +50,7 @@
         </span>
       </section>
 
-      <section class="dashboard-overview" aria-labelledby="overview-title">
+      <section class="dashboard-overview" data-workspace="dashboard" aria-labelledby="overview-title">
         <div class="section-heading section-heading--overview">
           <div>
             <p class="eyebrow">Daily command center</p>
@@ -62,7 +71,24 @@
         </div>
       </section>
 
-      <section class="content-area projects-section" aria-labelledby="projects-title">
+      <section class="task-analytics-section" data-workspace="analytics" aria-labelledby="task-analytics-title">
+        <div class="section-heading section-heading--overview">
+          <div>
+            <p class="eyebrow">Task intelligence</p>
+            <h2 id="task-analytics-title">Task analytics</h2>
+          </div>
+        </div>
+        <div class="task-analytics-content" id="task-analytics-content" aria-live="polite">
+          <p class="overview-state" data-state="loading">Loading task analytics...</p>
+        </div>
+      </section>
+
+      <section class="content-area life-section" data-workspace="calendar" aria-labelledby="timeline-title">
+        <div class="section-heading"><div><p class="eyebrow">Life calendar</p><h2 id="timeline-title">Timeline</h2></div></div>
+        <div id="timeline-content" class="life-content" aria-live="polite"></div>
+      </section>
+
+      <section class="content-area projects-section" data-workspace="projects" aria-labelledby="projects-title">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Workspace</p>
@@ -80,7 +106,7 @@
         </div>
       </section>
 
-      <section class="content-area tasks-section" aria-labelledby="tasks-title">
+      <section class="content-area tasks-section" data-workspace="tasks" aria-labelledby="tasks-title">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Project workspace</p>
@@ -91,9 +117,65 @@
           </button>
         </div>
 
+        <div class="task-controls" aria-label="Task search, filters, and sorting">
+          <label class="field" for="task-search">
+            <span>Search tasks</span>
+            <input id="task-search" type="search" placeholder="Search by title" />
+          </label>
+          <label class="field" for="task-status-filter">
+            <span>Status</span>
+            <select id="task-status-filter">
+              <option value="all">All</option>
+              <option value="todo">Todo</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+          <label class="field" for="task-priority-filter">
+            <span>Priority</span>
+            <select id="task-priority-filter">
+              <option value="all">All</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </label>
+          <label class="field" for="task-sort">
+            <span>Sort</span>
+            <select id="task-sort">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="priority">Priority</option>
+              <option value="due-date">Due Date</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="task-quick-filters" aria-label="Quick task filters">
+          <button class="button button--secondary" type="button" data-quick-filter="all" aria-pressed="true">All</button>
+          <button class="button button--secondary" type="button" data-quick-filter="today" aria-pressed="false">Today</button>
+          <button class="button button--secondary" type="button" data-quick-filter="overdue" aria-pressed="false">Overdue</button>
+          <button class="button button--secondary" type="button" data-quick-filter="high-priority" aria-pressed="false">High Priority</button>
+          <button class="button button--secondary" type="button" data-quick-filter="completed" aria-pressed="false">Completed</button>
+        </div>
+
+        <div class="task-counts" id="task-counts" aria-live="polite"></div>
+
         <div class="tasks-content" id="tasks-content" aria-live="polite"></div>
       </section>
-    </main>
+
+      <section class="life-foundations" aria-label="Life OS foundations">
+        <section class="content-area life-section" data-workspace="goals" aria-labelledby="goals-title">
+          <div class="section-heading"><div><p class="eyebrow">Direction</p><h2 id="goals-title">Goals</h2></div><button class="button button--primary" id="new-goal-button" type="button">New Goal</button></div>
+          <div id="goals-content" class="life-content" aria-live="polite"></div>
+        </section>
+        <section class="content-area life-section" data-workspace="habits" aria-labelledby="habits-title">
+          <div class="section-heading"><div><p class="eyebrow">Rhythm</p><h2 id="habits-title">Habits</h2></div><button class="button button--primary" id="new-habit-button" type="button">New Habit</button></div>
+          <div id="habits-content" class="life-content" aria-live="polite"></div>
+        </section>
+      </section>
+      </main>
+    </div>
+    <nav id="mobile-navigation" class="mobile-navigation" aria-label="Mobile navigation"></nav>
 
     <dialog class="project-dialog" id="project-dialog" aria-labelledby="project-dialog-title">
       <form class="project-form" id="project-form" novalidate>
@@ -163,6 +245,22 @@
           <input id="task-title" name="title" type="text" autocomplete="off" required />
         </label>
 
+        <div class="task-form__optional-fields">
+          <label class="field" for="task-priority">
+            <span>Priority</span>
+            <select id="task-priority" name="priority">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </label>
+
+          <label class="field" for="task-due-date">
+            <span>Due date <em>Optional</em></span>
+            <input id="task-due-date" name="due-date" type="date" />
+          </label>
+        </div>
+
         <p class="form-feedback" id="task-form-feedback" role="status" aria-live="polite"></p>
 
         <div class="task-form__actions">
@@ -172,6 +270,29 @@
       </form>
     </dialog>
 
-    <script type="module" src="./app.js"></script>
+    <dialog class="task-dialog" id="goal-dialog" aria-labelledby="goal-dialog-title">
+      <form class="task-form" id="goal-form" novalidate>
+        <div class="task-form__header"><div><p class="eyebrow">Goals</p><h2 id="goal-dialog-title">New Goal</h2></div><button class="icon-button" data-close-dialog type="button" aria-label="Close dialog">×</button></div>
+        <label class="field"><span>Title</span><input name="title" type="text" required /></label>
+        <label class="field"><span>Description <em>Optional</em></span><textarea name="description" rows="3"></textarea></label>
+        <div class="task-form__optional-fields">
+          <label class="field"><span>Status</span><select name="status"><option value="active">Active</option><option value="completed">Completed</option><option value="archived">Archived</option></select></label>
+          <label class="field"><span>Target date <em>Optional</em></span><input name="target-date" type="date" /></label>
+          <label class="field"><span>Progress</span><input name="progress" type="number" min="0" max="100" value="0" /></label>
+        </div>
+        <div class="task-form__actions"><button class="button button--secondary" data-close-dialog type="button">Cancel</button><button class="button button--primary" type="submit">Create Goal</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="task-dialog" id="habit-dialog" aria-labelledby="habit-dialog-title">
+      <form class="task-form" id="habit-form" novalidate>
+        <div class="task-form__header"><div><p class="eyebrow">Habits</p><h2 id="habit-dialog-title">New Habit</h2></div><button class="icon-button" data-close-dialog type="button" aria-label="Close dialog">×</button></div>
+        <label class="field"><span>Name</span><input name="name" type="text" required /></label>
+        <label class="field"><span>Frequency</span><select name="frequency"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="custom">Custom</option></select></label>
+        <div class="task-form__actions"><button class="button button--secondary" data-close-dialog type="button">Cancel</button><button class="button button--primary" type="submit">Create Habit</button></div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./app.js?v=0.4.0.3"></script>
   </body>
 </html>

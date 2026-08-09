@@ -5,17 +5,30 @@ import {
   SUPABASE_PUBLISHABLE_KEY,
 } from "./supabase.config.js";
 import "./supabase.client.js";
-import { initializeProjectForm } from "./project-form.js";
-import { getProjects } from "./projects.service.js";
-import { initializeTaskForm } from "./task-form.js";
-import { getTaskSummary, getTasksByProjectId, updateTaskStatus } from "./tasks.service.js";
+import { initializeProjectForm } from "./project-form.js?v=0.4.0";
+import { initializeNavigation } from "./navigation.js?v=0.4.0";
+import { getProjects } from "./projects.service.js?v=0.4.0";
+import { getGoals } from "./goals.service.js?v=0.4.0";
+import { getHabits } from "./habits.service.js?v=0.4.0";
+import { buildProjectSummaries, buildTaskAnalytics, buildTimeline } from "./analytics.js?v=0.4.0";
+import { initializeLifeFoundations, renderGoals, renderHabits, renderTimeline } from "./life-foundations.view.js?v=0.4.0";
+import { initializeTaskForm } from "./task-form.js?v=0.4.0.1";
+import {
+  deleteTask,
+  getTaskSummary,
+  getTasksByProjectId,
+  updateTaskStatus,
+} from "./tasks.service.js?v=0.4.0";
 import {
   initializeOverview,
   renderOverview,
   renderOverviewError,
   renderOverviewLoading,
+  renderTaskAnalytics,
+  renderTaskAnalyticsError,
+  renderTaskAnalyticsLoading,
   setQuickTaskAvailable,
-} from "./overview.view.js";
+} from "./overview.view.js?v=0.4.0";
 import {
   initializeTasksView,
   renderTasks,
@@ -23,13 +36,13 @@ import {
   renderTasksInitial,
   renderTasksLoading,
   selectTasksProject,
-} from "./tasks.view.js";
+} from "./tasks.view.js?v=0.4.0";
 import {
   initializeProjectsView,
   renderProjects,
   renderProjectsError,
   renderProjectsLoading,
-} from "./projects.view.js";
+} from "./projects.view.js?v=0.4.0";
 
 const connection = {
   state: "checking",
@@ -73,56 +86,37 @@ async function checkSupabaseConnection() {
   }
 }
 
-async function loadProjects() {
+async function refreshDashboard() {
   renderProjectsLoading();
-
+  renderOverviewLoading();
+  renderTaskAnalyticsLoading();
   try {
-    const projects = await getProjects();
+    const [projects, tasks, goals, habits] = await Promise.all([
+      getProjects(), getTaskSummary(), getGoals(), getHabits(),
+    ]);
     availableProjects = projects;
     setQuickTaskAvailable(projects.length > 0);
-    renderProjects(projects);
-  } catch (error) {
-    console.error("Projects could not be loaded.", error);
-    renderProjectsError();
-  }
-}
-
-async function loadOverview() {
-  renderOverviewLoading();
-
-  try {
-    const [projects, tasks] = await Promise.all([getProjects(), getTaskSummary()]);
-    const summary = tasks.reduce(
-      (counts, task) => {
-        counts.totalTasks += 1;
-
-        if (task.status === "done") {
-          counts.completedTasks += 1;
-        } else {
-          counts.pendingTasks += 1;
-        }
-
-        return counts;
-      },
-      {
-        activeProjects: projects.filter(
-          (project) => project.status?.toLowerCase() === "active",
-        ).length,
-        pendingTasks: 0,
-        completedTasks: 0,
-        totalTasks: 0,
-      },
-    );
-
+    const summary = tasks.reduce((counts, task) => {
+      counts.totalTasks += 1;
+      if (task.status === "done") counts.completedTasks += 1;
+      else counts.pendingTasks += 1;
+      return counts;
+    }, {
+      activeProjects: projects.filter((project) => project.status?.toLowerCase() === "active").length,
+      pendingTasks: 0, completedTasks: 0, totalTasks: 0,
+    });
+    renderProjects(projects, buildProjectSummaries(projects, tasks));
     renderOverview(summary);
+    renderTaskAnalytics(buildTaskAnalytics(tasks));
+    renderGoals(goals);
+    renderHabits(habits);
+    renderTimeline(buildTimeline(tasks), projects);
   } catch (error) {
-    console.error("Dashboard overview could not be loaded.", error);
+    console.error("Dashboard data could not be loaded.", error);
+    renderProjectsError();
     renderOverviewError();
+    renderTaskAnalyticsError();
   }
-}
-
-async function refreshDashboard() {
-  await Promise.all([loadProjects(), loadOverview()]);
 }
 
 async function loadTasksForProject(project) {
@@ -143,7 +137,12 @@ async function toggleTaskStatus(task) {
   const nextStatus = task.status === "done" ? "todo" : "done";
 
   await updateTaskStatus(task.id, nextStatus);
-  await Promise.all([loadTasksForProject(selectedTasksProject), loadOverview()]);
+  await Promise.all([loadTasksForProject(selectedTasksProject), refreshDashboard()]);
+}
+
+async function removeTask(task) {
+  await deleteTask(task.id);
+  await Promise.all([loadTasksForProject(selectedTasksProject), refreshDashboard()]);
 }
 
 renderConnectionStatus();
@@ -159,17 +158,21 @@ const taskForm = initializeTaskForm(async (project = selectedTasksProject) => {
     return;
   }
 
-  await Promise.all([loadTasksForProject(project), loadOverview()]);
+  await Promise.all([loadTasksForProject(project), refreshDashboard()]);
 });
 
 initializeProjectsView({
   onEdit: projectForm.openForEdit,
-  onSelect: loadTasksForProject,
+  onSelect: async (project) => {
+    window.location.hash = "tasks";
+    await loadTasksForProject(project);
+  },
 });
 initializeTasksView({
   onCreate: taskForm.openForCreate,
   onToggle: toggleTaskStatus,
   onEdit: taskForm.openForEdit,
+  onDelete: removeTask,
 });
 initializeOverview({
   onNewProject: projectForm.openForCreate,
@@ -179,6 +182,18 @@ initializeOverview({
     if (project) {
       taskForm.openForCreate(project);
     }
+  },
+});
+initializeLifeFoundations({ onDataChanged: refreshDashboard });
+initializeNavigation({
+  onQuickAdd: (type) => {
+    if (type === "project") projectForm.openForCreate();
+    if (type === "task") {
+      const project = selectedTasksProject || availableProjects[0];
+      if (project) taskForm.openForCreate(project);
+    }
+    if (type === "goal") document.querySelector("#new-goal-button")?.click();
+    if (type === "habit") document.querySelector("#new-habit-button")?.click();
   },
 });
 renderTasksInitial();

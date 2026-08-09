@@ -1,4 +1,4 @@
-import { createTask, updateTaskTitle } from "./tasks.service.js";
+import { createTask, updateTask } from "./tasks.service.js";
 
 const dialog = document.querySelector("#task-dialog");
 const form = document.querySelector("#task-form");
@@ -7,6 +7,8 @@ const cancelButton = document.querySelector("#cancel-task-button");
 const submitButton = document.querySelector("#create-task-button");
 const feedback = document.querySelector("#task-form-feedback");
 const titleInput = document.querySelector("#task-title");
+const priorityInput = document.querySelector("#task-priority");
+const dueDateInput = document.querySelector("#task-due-date");
 const dialogTitle = document.querySelector("#task-dialog-title");
 
 let selectedProject = null;
@@ -50,6 +52,14 @@ function closeDialog() {
   }
 }
 
+function getTaskFromForm() {
+  return {
+    title: titleInput?.value.trim() || "",
+    priority: priorityInput?.value || "medium",
+    dueDate: dueDateInput?.value || "",
+  };
+}
+
 export function initializeTaskForm(onSaved) {
   function openForCreate(project) {
     selectedProject = project;
@@ -70,6 +80,14 @@ export function initializeTaskForm(onSaved) {
       titleInput.value = task.title;
     }
 
+    if (priorityInput) {
+      priorityInput.value = task.priority || "medium";
+    }
+
+    if (dueDateInput) {
+      dueDateInput.value = task.due_date || "";
+    }
+
     dialog?.showModal();
     titleInput?.focus();
   }
@@ -80,9 +98,9 @@ export function initializeTaskForm(onSaved) {
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const title = titleInput?.value.trim() || "";
+    const task = getTaskFromForm();
 
-    if (!title) {
+    if (!task.title) {
       setFeedback("Task title is required.", "error");
       titleInput?.focus();
       return;
@@ -98,14 +116,16 @@ export function initializeTaskForm(onSaved) {
 
     try {
       if (editingTask) {
-        await updateTaskTitle(editingTask.id, title);
+        await updateTask(editingTask.id, task);
         await onSaved();
         setFeedback("Task updated successfully.", "success");
       } else {
-        await createTask(selectedProject.id, title);
+        await createTask(selectedProject.id, task);
         await onSaved(selectedProject);
         setFeedback("Task created successfully.", "success");
       }
+      form?.reset();
+      closeDialog();
     } catch (error) {
       console.error("Task could not be saved.", error);
       setFeedback("Task could not be saved. Please try again.", "error");

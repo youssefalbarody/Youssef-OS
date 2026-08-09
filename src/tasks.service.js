@@ -6,7 +6,7 @@ import { supabase } from "./supabase.client.js";
 export async function getTasksByProjectId(projectId) {
   const { data, error } = await supabase
     .from("tasks")
-    .select("id, title, status")
+    .select("id, title, status, priority, due_date, created_at")
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
@@ -18,10 +18,12 @@ export async function getTasksByProjectId(projectId) {
 }
 
 /**
- * Reads task statuses used by the dashboard overview.
+ * Reads the task fields used by the dashboard overview and analytics.
  */
 export async function getTaskSummary() {
-  const { data, error } = await supabase.from("tasks").select("status");
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("id, project_id, title, status, priority, due_date, completed_at");
 
   if (error) {
     throw error;
@@ -33,11 +35,13 @@ export async function getTaskSummary() {
 /**
  * Creates one task for the selected project.
  */
-export async function createTask(projectId, title) {
+export async function createTask(projectId, task) {
   const { error } = await supabase.from("tasks").insert({
     project_id: projectId,
-    title,
+    title: task.title,
     status: "todo",
+    priority: task.priority,
+    due_date: task.dueDate || null,
   });
 
   if (error) {
@@ -49,9 +53,10 @@ export async function createTask(projectId, title) {
  * Updates the completion status of one task.
  */
 export async function updateTaskStatus(taskId, status) {
+  const completedAt = status === "done" ? new Date().toISOString() : null;
   const { error } = await supabase
     .from("tasks")
-    .update({ status })
+    .update({ status, completed_at: completedAt })
     .eq("id", taskId);
 
   if (error) {
@@ -62,11 +67,26 @@ export async function updateTaskStatus(taskId, status) {
 /**
  * Updates the title of one task without changing its status.
  */
-export async function updateTaskTitle(taskId, title) {
+export async function updateTask(taskId, task) {
   const { error } = await supabase
     .from("tasks")
-    .update({ title })
+    .update({
+      title: task.title,
+      priority: task.priority,
+      due_date: task.dueDate || null,
+    })
     .eq("id", taskId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+/**
+ * Deletes only the selected task.
+ */
+export async function deleteTask(taskId) {
+  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
 
   if (error) {
     throw error;

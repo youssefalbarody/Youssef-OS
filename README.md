@@ -2,8 +2,8 @@
 
 > A secure personal operating system for managing Youssef's life through one connected platform.
 
-Version: 0.2.6
-Current release: Sprint 17
+Version: 0.5.0
+Current release: Sprint 22
 Status: Active
 
 ## Philosophy
@@ -20,7 +20,7 @@ Youssef OS is developed iteratively. Each release has a clear goal, defined scop
 
 ## Current Focus
 
-Sprint 17 improves the project creation flow with clear status choices and immediate dashboard updates. Its outcome is recorded in `SPRINT_REPORT.md`.
+Sprint 22 organizes the existing modules into a responsive application shell with focused workspaces. Its outcome is recorded in `SPRINT_REPORT.md`.
 
 ## Documentation
 

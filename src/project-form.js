@@ -134,5 +134,5 @@ export function initializeProjectForm(onSaved) {
     }
   });
 
-  return { openForEdit };
+  return { openForCreate, openForEdit };
 }

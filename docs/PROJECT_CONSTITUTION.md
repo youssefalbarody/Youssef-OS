@@ -1,7 +1,7 @@
 # PROJECT CONSTITUTION
 
-Version: 0.2.6
-Current release: Sprint 17
+Version: 0.5.0
+Current release: Sprint 22
 Status: Active
 Project: Youssef OS
 
@@ -43,4 +43,4 @@ Work is delivered iteratively in small releases. Each release must have a clear 
 
 ---
 
-End of PROJECT CONSTITUTION v0.2.6
+End of PROJECT CONSTITUTION v0.3.0
