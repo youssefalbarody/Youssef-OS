@@ -70,6 +70,7 @@ export function renderHabits(habits) {
     const title = document.createElement("h3");
     const meta = document.createElement("p");
     const button = document.createElement("button");
+    const actions = document.createElement("div");
     card.className = "life-card life-card--habit";
     title.textContent = habit.name;
     meta.textContent = `${habit.frequency} · ${habit.is_active ? "Active" : "Inactive"}`;
@@ -82,7 +83,9 @@ export function renderHabits(habits) {
     edit.type = "button";
     edit.dataset.editHabitId = habit.id;
     edit.textContent = "Edit";
-    card.append(title, meta, button, edit);
+    actions.className = "life-card__actions";
+    actions.append(button, edit);
+    card.append(title, meta, actions);
     list.append(card);
   });
   habitsContent.replaceChildren(list);
